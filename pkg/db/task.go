@@ -13,6 +13,10 @@ type Task struct {
 	Repeat  string `json:"repeat"`
 }
 
+var (
+	errIncorrectId = errors.New("Update failed: incorrect task id")
+)
+
 // Adding a new task into database
 func AddTask(task *Task) (int64, error) {
 
@@ -88,6 +92,10 @@ func Tasks(limit int, searchDate string, searchText string) ([]Task, error) {
 
 	}
 
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
 	// In case there are no records, returning {"tasks":[]} object
 	if len(tasks) == 0 {
 		return []Task{}, nil
@@ -114,10 +122,6 @@ func GetTask(id string) (Task, error) {
 
 // Updating of a single task record
 func UpdateTask(task *Task) error {
-
-	var (
-		errIncorrectId = errors.New("Update failed: incorrect task id")
-	)
 
 	query := `UPDATE scheduler SET date = :date, title = :title, comment = :comment, repeat = :repeat WHERE id = :id`
 

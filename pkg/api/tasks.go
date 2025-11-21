@@ -8,6 +8,8 @@ import (
 	"tracker/pkg/db"
 )
 
+const dbLimit = 50
+
 // Handler to get a tasks list
 func getTasksHandler(res http.ResponseWriter, req *http.Request) {
 
@@ -17,29 +19,26 @@ func getTasksHandler(res http.ResponseWriter, req *http.Request) {
 	// Getting search parameter
 	search := req.FormValue("search")
 
+	var searchDate, searchText string
+
 	if search != "" {
 
 		// Checking if it search by date
-		searchDate, err := time.Parse("02.01.2006", search)
+		searchDateToken, err := time.Parse("02.01.2006", search)
 
 		if err == nil {
-
 			// Switching date to a unified api format and
-			// fetching last 50 tasks from a database by date
-			tasks, err = db.Tasks(50, searchDate.Format(apiDateFormat), "")
+			// will be using a fetching last dbLimit tasks from a database by date
+			searchDate = searchDateToken.Format(apiDateFormat)
 
 		} else {
-
-			// Fetching last 50 tasks from a database by text
-			tasks, err = db.Tasks(50, "", search)
+			// Will be using a fetching last dbLimit tasks from a database by text
+			searchText = search
 		}
 
-	} else {
-
-		// Fetching last 50 tasks from a database
-		tasks, err = db.Tasks(50, "", "")
-
 	}
+	// Fetching last 50 tasks from a database according to search criteria
+	tasks, err = db.Tasks(dbLimit, searchDate, searchText)
 
 	if err != nil {
 		writeJson(res, ErrorResponse{Error: fmt.Sprintf("database selection failed")}, http.StatusInternalServerError)
@@ -155,6 +154,12 @@ func taskDoneHandler(res http.ResponseWriter, req *http.Request) {
 	var task db.Task
 	var err error
 
+	// Only POST method is permitted
+	if req.Method != http.MethodPost {
+		writeJson(res, ErrorResponse{Error: fmt.Sprintf("Method not allowed")}, http.StatusMethodNotAllowed)
+		return
+	}
+
 	// Getting ID parameter
 	id := req.FormValue("id")
 
@@ -163,8 +168,6 @@ func taskDoneHandler(res http.ResponseWriter, req *http.Request) {
 		writeJson(res, ErrorResponse{Error: fmt.Sprintf("task id has not been provided")}, http.StatusBadRequest)
 		return
 	}
-
-	// Getting task by ID from the database
 
 	// Fetching a task by ID from a database
 	task, err = db.GetTask(id)
@@ -197,7 +200,6 @@ func taskDoneHandler(res http.ResponseWriter, req *http.Request) {
 		// Updating a task in the database
 
 		task.Date = next
-		err = db.UpdateTask(&task)
 
 		// Updating a task in the database
 		err = db.UpdateTask(&task)

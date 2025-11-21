@@ -42,14 +42,14 @@ func NextDate(now time.Time, dstart string, repeat string) (string, error) {
 		// Searching for a next D date
 
 		date = startDate
-		
-			for {
-				date = date.AddDate(0, 0, repeatDValue)
 
-				if afterNow(date, now) {
-					break
-				}
+		for {
+			date = date.AddDate(0, 0, repeatDValue)
+
+			if afterNow(date, now) {
+				break
 			}
+		}
 
 	case "y":
 
@@ -444,5 +444,10 @@ func nextDayHandler(res http.ResponseWriter, req *http.Request) {
 	res.WriteHeader(http.StatusOK)
 
 	// Sending a response
-	res.Write([]byte(nextDate))
+	_, err = res.Write([]byte(nextDate))
+
+	if err != nil {
+		http.Error(res, "Response writing error:"+err.Error(), http.StatusInternalServerError)
+		return
+	}
 }

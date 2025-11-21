@@ -19,6 +19,9 @@ func main() {
 	// Initialization of database
 	err := db.Init(getDBpath())
 
+	// Database closure setting
+	defer db.Close()
+
 	// Errors handling
 	if err != nil {
 		logger.Fatalf("\nDatabase initialization fatal error: %v", err)

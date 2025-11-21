@@ -25,6 +25,9 @@ func taskHandler(res http.ResponseWriter, req *http.Request) {
 	case http.MethodDelete:
 		deleteTaskHandler(res, req)
 
+	default:
+		http.Error(res, "Method is not permitted", http.StatusMethodNotAllowed)
+		return
 	}
 
 }

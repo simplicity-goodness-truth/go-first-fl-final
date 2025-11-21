@@ -50,6 +50,17 @@ func Init(dbFile string) error {
 		}
 	}
 
+	return nil
+
+}
+
+// Database connection closure function
+func Close() error {
+
+	if DB != nil {		
+		err := DB.Close()
+		return err
+	}
 
 	return nil
 
